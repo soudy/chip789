@@ -15,11 +15,6 @@
 #define COLOR_ON 0xFFFFFFFF
 #define COLOR_OFF 0xFF000000
 
-enum {
-  HALT = 1 << 0,
-  DRAW = 1 << 1
-};
-
 typedef struct {
   uint8_t memory[MEMORY_SIZE];
   uint8_t v[REGISTER_SIZE];
