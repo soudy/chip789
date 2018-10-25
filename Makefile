@@ -7,7 +7,7 @@ OBJFILES=$(patsubst %.c,%.o, $(CFILES))
 
 all: build build/chip789
 
-build/chip8: $(OBJFILES)
+build/chip789: $(OBJFILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 build: $(OBJFILES)

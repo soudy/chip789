@@ -1,18 +1,17 @@
-#include<stdlib.h>
-
 #include "display.h"
 
 display_t
 display_init(int width, int height)
 {
-  display_t display;
-  display.width = width;
-  display.height = height;
-
   SDL_Init(SDL_INIT_VIDEO);
 
+  display_t display = {
+    .width = width,
+    .height = height
+  };
+
   display.window = SDL_CreateWindow(
-    "Chip-8",
+    "chip789",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     display.width * PIXEL_SIZE,
