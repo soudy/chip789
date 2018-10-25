@@ -178,7 +178,7 @@ static void chip_ret(chip_t *chip)
 static void chip_call(chip_t *chip, uint16_t addr)
 {
   if (chip->sp > STACK_SIZE) {
-    chip_error("stack underflow");
+    chip_error("stack overflow");
   }
 
   chip->stack[chip->sp] = chip->pc;
