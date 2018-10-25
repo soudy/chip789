@@ -1,6 +1,6 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 #include <time.h>
 
@@ -26,7 +26,8 @@ static const uint8_t fontset[] = {
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-chip_t *chip_init(void)
+chip_t *
+chip_init(void)
 {
   chip_t *chip = calloc(1, sizeof(chip_t));
 
@@ -48,12 +49,14 @@ chip_t *chip_init(void)
   return chip;
 }
 
-void chip_skip(chip_t *chip)
+void
+chip_skip(chip_t *chip)
 {
   chip->pc += 2;
 }
 
-void chip_cycle(chip_t *chip)
+void
+chip_cycle(chip_t *chip)
 {
   uint16_t instr = chip->memory[chip->pc] << 8 | chip->memory[chip->pc + 1];
 
@@ -68,7 +71,8 @@ void chip_cycle(chip_t *chip)
   }
 }
 
-void chip_error(const char *fmt, ...)
+void
+chip_error(const char *fmt, ...)
 {
   va_list arg;
   va_start(arg, fmt);
@@ -82,7 +86,8 @@ void chip_error(const char *fmt, ...)
   exit(EXIT_FAILURE);
 }
 
-void load_game(chip_t *chip, const char *filename)
+void
+load_game(chip_t *chip, const char *filename)
 {
   FILE *game = fopen(filename, "rb");
   if (!game) {

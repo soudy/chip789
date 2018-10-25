@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -13,7 +13,8 @@ static void chip_sub(chip_t *chip, uint8_t addr, uint8_t x, uint8_t y);
 static void chip_bcd(chip_t *chip, uint8_t x);
 static void chip_draw(chip_t *chip, uint8_t x, uint8_t y, uint8_t n);
 
-void run_instr(chip_t *chip, uint16_t instr)
+void
+run_instr(chip_t *chip, uint16_t instr)
 {
   chip_skip(chip);
 
@@ -166,7 +167,8 @@ void run_instr(chip_t *chip, uint16_t instr)
   }
 }
 
-static void chip_ret(chip_t *chip)
+static void
+chip_ret(chip_t *chip)
 {
   if (chip->sp == 0) {
     chip_error("stack underflow");
@@ -175,7 +177,8 @@ static void chip_ret(chip_t *chip)
   chip->pc = chip->stack[--chip->sp];
 }
 
-static void chip_call(chip_t *chip, uint16_t addr)
+static void
+chip_call(chip_t *chip, uint16_t addr)
 {
   if (chip->sp > STACK_SIZE) {
     chip_error("stack overflow");
@@ -187,21 +190,23 @@ static void chip_call(chip_t *chip, uint16_t addr)
 }
 
 
-static void chip_add(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
+static void
+chip_add(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
 {
   // Set VF to 1 if the result overflows, otherwise 0
   chip->v[0xF] = (a > 0 && b > UINT8_MAX - a) ? 1 : 0;
   chip->v[addr] = a + b;
 }
 
-static void chip_sub(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
+static void
+chip_sub(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
 {
   chip->v[0xF] = (a > b) ? 1 : 0;
   chip->v[addr] = a - b;
 }
 
-
-static void chip_bcd(chip_t *chip, uint8_t x)
+static void
+chip_bcd(chip_t *chip, uint8_t x)
 {
   uint8_t vx = chip->v[x];
   chip->memory[chip->i] = vx / 100;
@@ -209,7 +214,8 @@ static void chip_bcd(chip_t *chip, uint8_t x)
   chip->memory[chip->i + 2] = vx % 10;
 }
 
-static void chip_draw(chip_t *chip, uint8_t x, uint8_t y, uint8_t n)
+static void
+chip_draw(chip_t *chip, uint8_t x, uint8_t y, uint8_t n)
 {
   uint8_t pixel;
   chip->v[0xF] = 0;

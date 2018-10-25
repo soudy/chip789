@@ -2,7 +2,8 @@
 
 #include "display.h"
 
-display_t display_init(int width, int height)
+display_t
+display_init(int width, int height)
 {
   display_t display;
   display.width = width;
@@ -27,7 +28,8 @@ display_t display_init(int width, int height)
   return display;
 }
 
-void display_draw(display_t display, uint32_t *screen)
+void
+display_draw(display_t display, uint32_t *screen)
 {
   SDL_UpdateTexture(display.texture, NULL, screen,
                     display.width * sizeof(uint32_t));
@@ -35,7 +37,8 @@ void display_draw(display_t display, uint32_t *screen)
   SDL_RenderPresent(display.renderer);
 }
 
-void display_free(display_t display)
+void
+display_free(display_t display)
 {
   SDL_DestroyTexture(display.texture);
   SDL_DestroyRenderer(display.renderer);

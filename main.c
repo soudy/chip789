@@ -5,7 +5,8 @@
 #include "chip.h"
 #include "display.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
   if (argc != 2) {
     fprintf(stderr, "usage: %s game\n", argv[0]);
