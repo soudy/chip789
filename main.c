@@ -36,7 +36,12 @@ main(int argc, char *argv[])
         break;
       case SDL_KEYUP:
       case SDL_KEYDOWN:
-        // TODO: handle keypress
+        for (int i = 0; i < NUM_KEYS; i++) {
+          if (event.key.keysym.scancode == sdl_keys[i]) {
+            chip->keys[key_map[i]] = (event.type == SDL_KEYDOWN) ? 1 : 0;
+            break;
+          }
+        }
         break;
       default:
         break;

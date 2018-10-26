@@ -28,75 +28,94 @@ run_instr(chip_t *chip, uint16_t instr)
   switch (a) {
   case 0x0:
     switch (xyn) {
-    case 0x0E0: // CLS
+    case 0x0E0:
+      // CLS
       memset(chip->display, COLOR_OFF, sizeof(chip->display));
       break;
-    case 0x0EE: // RET
+    case 0x0EE:
+      // RET
       chip_ret(chip);
       break;
-    default: // SYS
+    default:
+      // SYS
       // The SYS instruction is only used on the old computers on which Chip-8
       // was originally implemented. It is ignored by modern interpreters.
       break;
     }
     break;
-  case 0x1: // JP addr
+  case 0x1:
+    // JP addr
     chip->pc = xyn;
     break;
-  case 0x2: // CALL addr
+  case 0x2:
+    // CALL addr
     chip_call(chip, xyn);
     break;
-  case 0x3: // SE Vx, byte
+  case 0x3:
+    // SE Vx, byte
     if (chip->v[x] == kk) {
       chip_skip(chip);
     }
     break;
-  case 0x4: // SNE Vx, byte
+  case 0x4:
+    // SNE Vx, byte
     if (chip->v[x] != kk) {
       chip_skip(chip);
     }
     break;
-  case 0x5: // SE Vx, Vy
+  case 0x5:
+    // SE Vx, Vy
     if (chip->v[x] == chip->v[y]) {
       chip_skip(chip);
     }
     break;
-  case 0x6: // LD Vx, byte
+  case 0x6:
+    // LD Vx, byte
     chip->v[x] = kk;
     break;
-  case 0x7: { // ADD Vx, byte
+  case 0x7: {
+    // ADD Vx, byte
     chip_add(chip, x, chip->v[x], kk);
     break;
   }
   case 0x8:
     switch (n) {
-    case 0x0: // LD Vx, Vy
+    case 0x0:
+      // LD Vx, Vy
       chip->v[x] = chip->v[y];
       break;
-    case 0x1: // OR Vx, Vy
+    case 0x1:
+      // OR Vx, Vy
       chip->v[x] |= chip->v[y];
       break;
-    case 0x2: // AND Vx, Vy
+    case 0x2:
+      // AND Vx, Vy
       chip->v[x] &= chip->v[y];
       break;
-    case 0x3: // XOR Vx, Vy
+    case 0x3:
+      // XOR Vx, Vy
       chip->v[x] ^= chip->v[y];
       break;
-    case 0x4: { // ADD Vx, Vy
+    case 0x4: {
+      // ADD Vx, Vy
       chip_add(chip, x, chip->v[x], chip->v[y]);
       break;
     }
-    case 0x5: // SUB Vx, Vy
+    case 0x5:
+      // SUB Vx, Vy
       chip_sub(chip, x, chip->v[x], chip->v[y]);
       break;
-    case 0x6: // SHR Vx {, Vy}
+    case 0x6:
+      // SHR Vx {, Vy}
       chip->v[0xF] = (chip->v[x] & 0x01) ? 1 : 0;
       chip->v[x] >>= 2;
       break;
-    case 0x7: // SUBN Vx, Vy
+    case 0x7:
+      // SUBN Vx, Vy
       chip_sub(chip, x, chip->v[y], chip->v[x]);
       break;
-    case 0xE: // SHL Vx {, Vy}
+    case 0xE:
+      // SHL Vx {, Vy}
       chip->v[0xF] = (chip->v[x] & 0x80) ? 1 : 0;
       chip->v[x] <<= 2;
       break;
@@ -104,63 +123,89 @@ run_instr(chip_t *chip, uint16_t instr)
     break;
   case 0x9:
     switch (n) {
-    case 0x0: // SNE Vx, Vy
+    case 0x0:
+      // SNE Vx, Vy
       if (chip->v[x] != chip->v[y]) {
         chip_skip(chip);
       }
       break;
     }
     break;
-  case 0xA: // LD I, addr
+  case 0xA:
+    // LD I, addr
     chip->i = xyn;
     break;
-  case 0xB: // JP V0, addr
+  case 0xB:
+    // JP V0, addr
     chip->pc = xyn + chip->v[0];
     break;
-  case 0xC: // RND Vx, byte
+  case 0xC:
+    // RND Vx, byte
     chip->v[x] = (rand() % 0xFF) & kk;
     break;
-  case 0xD: // DRW Vx, Vy, nibble
+  case 0xD:
+    // DRW Vx, Vy, nibble
     chip_draw(chip, x, y, n);
     break;
   case 0xE:
     switch (kk) {
-    case 0x9E: // SKP Vx
-      // TODO: skip if key is pressed
+    case 0x9E:
+      // SKP Vx
+      if (chip->keys[chip->v[x]] == 1) {
+        chip_skip(chip);
+      }
       break;
-    case 0xA1: // SKNP Vx
-      // TODO: skip if key isn't pressed
+    case 0xA1:
+      // SKNP Vx
+      if (chip->keys[chip->v[x]] == 0) {
+        chip_skip(chip);
+      }
       break;
     }
   case 0xF:
     switch (kk) {
-    case 0x07: // LD Vx, DT
+    case 0x07:
+      // LD Vx, DT
       chip->v[x] = chip->delay_timer;
       break;
-    case 0x0A: // LD Vx, K
-      // TODO: Wait for a key press, store the value of the key in Vx.
-      // All execution stops until a key is pressed, then the value of that key
-      // is stored in Vx.
+    case 0x0A:
+      // LD Vx, K
+      chip->pc -= 2;
+
+      for (int i = 0; i < NUM_KEYS; i++) {
+        if (chip->keys[i] == 1) {
+          chip->v[x] = i;
+          chip_skip(chip);
+          break;
+        }
+      }
       break;
-    case 0x15: // LD DT, Vx
+    case 0x15:
+      // LD DT, Vx
       chip->delay_timer = chip->v[x];
       break;
-    case 0x18: // LD ST, Vx
+    case 0x18:
+      // LD ST, Vx
       chip->sound_timer = chip->v[x];
       break;
-    case 0x1E: // ADD I, Vx
+    case 0x1E:
+      // ADD I, Vx
       chip->i += chip->v[x];
       break;
-    case 0x29: // LD F, Vx
+    case 0x29:
+      // LD F, Vx
       chip->i = chip->v[x] * 5;
       break;
-    case 0x33: // LD B, Vx
+    case 0x33:
+      // LD B, Vx
       chip_bcd(chip, x);
       break;
-    case 0x55: // LD [I], Vx
+    case 0x55:
+      // LD [I], Vx
       memcpy(chip->memory + chip->i, chip->v, x + 1);
       break;
-    case 0x65: // LD Vx, [I]
+    case 0x65:
+      // LD Vx, [I]
       memcpy(chip->v, chip->memory + chip->i, x + 1);
       break;
     }
@@ -188,7 +233,6 @@ chip_call(chip_t *chip, uint16_t addr)
   chip->sp++;
   chip->pc = addr;
 }
-
 
 static void
 chip_add(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
