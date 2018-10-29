@@ -30,12 +30,6 @@ chip_init(void)
 }
 
 void
-chip_skip(chip_t *chip)
-{
-  chip->pc += 2;
-}
-
-void
 chip_cycle(chip_t *chip)
 {
   uint16_t instr = chip->memory[chip->pc] << 8 | chip->memory[chip->pc + 1];

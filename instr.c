@@ -6,6 +6,12 @@
 
 #include "chip.h"
 
+void
+chip_skip(chip_t *chip)
+{
+  chip->pc += 2;
+}
+
 static void
 chip_cls(chip_t *chip) {
   memset(chip->display, COLOR_OFF, sizeof(chip->display));
