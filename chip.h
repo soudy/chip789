@@ -11,7 +11,6 @@
 #define DISPLAY_HEIGHT 32
 #define STACK_SIZE 16
 #define NUM_KEYS 16
-#define FONT_SIZE 80
 
 #define COLOR_ON 0xFFFFFFFF
 #define COLOR_OFF 0xFF000000
@@ -62,7 +61,6 @@ typedef struct {
   bool draw;
   uint32_t display[DISPLAY_WIDTH * DISPLAY_HEIGHT];
   uint8_t keys[NUM_KEYS];
-
 } chip_t;
 
 chip_t *chip_init(void);

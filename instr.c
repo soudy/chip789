@@ -6,12 +6,111 @@
 
 #include "chip.h"
 
-static void chip_ret(chip_t *chip);
-static void chip_call(chip_t *chip, uint16_t addr);
-static void chip_add(chip_t *chip, uint8_t addr, uint8_t x, uint8_t y);
-static void chip_sub(chip_t *chip, uint8_t addr, uint8_t x, uint8_t y);
-static void chip_bcd(chip_t *chip, uint8_t x);
-static void chip_draw(chip_t *chip, uint8_t x, uint8_t y, uint8_t n);
+static void
+chip_cls(chip_t *chip) {
+  memset(chip->display, COLOR_OFF, sizeof(chip->display));
+}
+
+static void
+chip_ret(chip_t *chip)
+{
+  if (chip->sp == 0) {
+    chip_error("stack underflow");
+  }
+
+  chip->pc = chip->stack[--chip->sp];
+}
+
+static void
+chip_call(chip_t *chip, uint16_t addr)
+{
+  if (chip->sp > STACK_SIZE) {
+    chip_error("stack overflow");
+  }
+
+  chip->stack[chip->sp] = chip->pc;
+  chip->sp++;
+  chip->pc = addr;
+}
+
+static void
+chip_add(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
+{
+  // Set VF to 1 if the result overflows, otherwise 0
+  chip->v[0xF] = (a > 0 && b > UINT8_MAX - a) ? 1 : 0;
+  chip->v[addr] = a + b;
+}
+
+static void
+chip_sub(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
+{
+  chip->v[0xF] = (a > b) ? 1 : 0;
+  chip->v[addr] = a - b;
+}
+
+static void
+chip_shr(chip_t *chip, uint8_t x)
+{
+  chip->v[0xF] = (chip->v[x] & 0x01) ? 1 : 0;
+  chip->v[x] >>= 2;
+}
+
+static void
+chip_shl(chip_t *chip, uint8_t x)
+{
+  chip->v[0xF] = (chip->v[x] & 0x80) ? 1 : 0;
+  chip->v[x] <<= 2;
+}
+
+static void
+chip_wait_for_key(chip_t *chip, uint8_t x)
+{
+  chip->pc -= 2;
+
+  for (int i = 0; i < NUM_KEYS; i++) {
+    if (chip->keys[i] == 1) {
+      chip->v[x] = i;
+      chip_skip(chip);
+      break;
+    }
+  }
+}
+
+static void
+chip_bcd(chip_t *chip, uint8_t x)
+{
+  uint8_t vx = chip->v[x];
+  chip->memory[chip->i] = vx / 100;
+  chip->memory[chip->i + 1] = (vx / 10) % 10;
+  chip->memory[chip->i + 2] = vx % 10;
+}
+
+static void
+chip_draw(chip_t *chip, uint8_t x, uint8_t y, uint8_t n)
+{
+  uint8_t pixel;
+  chip->v[0xF] = 0;
+
+  for (int yline = 0; yline < n; yline++) {
+    pixel = chip->memory[chip->i + yline];
+
+    for (int xline = 0; xline < 8; xline++) {
+      if (pixel & (0x80 >> xline)) {
+        int index = (chip->v[x] + xline) % DISPLAY_WIDTH +
+                    ((chip->v[y] + yline) % DISPLAY_HEIGHT) * DISPLAY_WIDTH;
+
+        if (chip->display[index] == COLOR_ON) {
+          chip->v[0xF] = 1;
+          chip->display[index] = COLOR_OFF;
+        } else {
+          chip->display[index] = COLOR_ON;
+        }
+
+        chip->draw = true;
+      }
+    }
+  }
+}
 
 void
 run_instr(chip_t *chip, uint16_t instr)
@@ -30,7 +129,7 @@ run_instr(chip_t *chip, uint16_t instr)
     switch (xyn) {
     case 0x0E0:
       // CLS
-      memset(chip->display, COLOR_OFF, sizeof(chip->display));
+      chip_cls(chip);
       break;
     case 0x0EE:
       // RET
@@ -107,8 +206,7 @@ run_instr(chip_t *chip, uint16_t instr)
       break;
     case 0x6:
       // SHR Vx {, Vy}
-      chip->v[0xF] = (chip->v[x] & 0x01) ? 1 : 0;
-      chip->v[x] >>= 2;
+      chip_shr(chip, x);
       break;
     case 0x7:
       // SUBN Vx, Vy
@@ -116,8 +214,7 @@ run_instr(chip_t *chip, uint16_t instr)
       break;
     case 0xE:
       // SHL Vx {, Vy}
-      chip->v[0xF] = (chip->v[x] & 0x80) ? 1 : 0;
-      chip->v[x] <<= 2;
+      chip_shl(chip, x);
       break;
     }
     break;
@@ -170,15 +267,7 @@ run_instr(chip_t *chip, uint16_t instr)
       break;
     case 0x0A:
       // LD Vx, K
-      chip->pc -= 2;
-
-      for (int i = 0; i < NUM_KEYS; i++) {
-        if (chip->keys[i] == 1) {
-          chip->v[x] = i;
-          chip_skip(chip);
-          break;
-        }
-      }
+      chip_wait_for_key(chip, x);
       break;
     case 0x15:
       // LD DT, Vx
@@ -208,79 +297,6 @@ run_instr(chip_t *chip, uint16_t instr)
       // LD Vx, [I]
       memcpy(chip->v, chip->memory + chip->i, x + 1);
       break;
-    }
-  }
-}
-
-static void
-chip_ret(chip_t *chip)
-{
-  if (chip->sp == 0) {
-    chip_error("stack underflow");
-  }
-
-  chip->pc = chip->stack[--chip->sp];
-}
-
-static void
-chip_call(chip_t *chip, uint16_t addr)
-{
-  if (chip->sp > STACK_SIZE) {
-    chip_error("stack overflow");
-  }
-
-  chip->stack[chip->sp] = chip->pc;
-  chip->sp++;
-  chip->pc = addr;
-}
-
-static void
-chip_add(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
-{
-  // Set VF to 1 if the result overflows, otherwise 0
-  chip->v[0xF] = (a > 0 && b > UINT8_MAX - a) ? 1 : 0;
-  chip->v[addr] = a + b;
-}
-
-static void
-chip_sub(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
-{
-  chip->v[0xF] = (a > b) ? 1 : 0;
-  chip->v[addr] = a - b;
-}
-
-static void
-chip_bcd(chip_t *chip, uint8_t x)
-{
-  uint8_t vx = chip->v[x];
-  chip->memory[chip->i] = vx / 100;
-  chip->memory[chip->i + 1] = (vx / 10) % 10;
-  chip->memory[chip->i + 2] = vx % 10;
-}
-
-static void
-chip_draw(chip_t *chip, uint8_t x, uint8_t y, uint8_t n)
-{
-  uint8_t pixel;
-  chip->v[0xF] = 0;
-
-  for (int yline = 0; yline < n; yline++) {
-    pixel = chip->memory[chip->i + yline];
-
-    for (int xline = 0; xline < 8; xline++) {
-      if (pixel & (0x80 >> xline)) {
-        int index = (chip->v[x] + xline) % DISPLAY_WIDTH +
-                    ((chip->v[y] + yline) % DISPLAY_HEIGHT) * DISPLAY_WIDTH;
-
-        if (chip->display[index] == COLOR_ON) {
-          chip->v[0xF] = 1;
-          chip->display[index] = COLOR_OFF;
-        } else {
-          chip->display[index] = COLOR_ON;
-        }
-
-        chip->draw = true;
-      }
     }
   }
 }
