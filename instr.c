@@ -43,7 +43,7 @@ static void
 chip_add(chip_t *chip, uint8_t addr, uint8_t a, uint8_t b)
 {
   // Set VF to 1 if the result overflows, otherwise 0
-  chip->v[0xF] = (a > 0 && b > UINT8_MAX - a) ? 1 : 0;
+  chip->v[0xF] = (b > UINT8_MAX - a) ? 1 : 0;
   chip->v[addr] = a + b;
 }
 
