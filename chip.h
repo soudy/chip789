@@ -64,7 +64,6 @@ typedef struct {
 } chip_t;
 
 chip_t *chip_init(void);
-void chip_skip(chip_t *chip);
 void chip_cycle(chip_t *chip);
 void chip_error(const char *fmt, ...);
 void load_game(chip_t *chip, const char *filename);

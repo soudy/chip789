@@ -6,7 +6,7 @@
 
 #include "chip.h"
 
-void
+static void
 chip_skip(chip_t *chip)
 {
   chip->pc += 2;
