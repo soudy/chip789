@@ -13,7 +13,8 @@ chip_skip(chip_t *chip)
 }
 
 static void
-chip_cls(chip_t *chip) {
+chip_cls(chip_t *chip)
+{
   memset(chip->display, COLOR_OFF, sizeof(chip->display));
 }
 
