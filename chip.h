@@ -15,21 +15,21 @@
 #define COLOR_ON 0xFFFFFFFF
 #define COLOR_OFF 0xFF000000
 
-static const uint8_t key_map[NUM_KEYS] = {
+static const uint8_t KEY_MAP[NUM_KEYS] = {
   0x01, 0x02, 0x03, 0x0c, // 1 2 3 c
   0x04, 0x05, 0x06, 0x0d, // 4 5 6 d
   0x07, 0x08, 0x09, 0x0e, // 7 8 9 e
   0x0a, 0x00, 0x0b, 0x0f  // a 0 b f
 };
 
-static const SDL_Scancode sdl_keys[NUM_KEYS] = {
+static const SDL_Scancode SDL_KEYS[NUM_KEYS] = {
   SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3, SDL_SCANCODE_4, // 1 2 3 4
   SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_E, SDL_SCANCODE_R, // q w e r
   SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F, // a s d f
   SDL_SCANCODE_Z, SDL_SCANCODE_X, SDL_SCANCODE_C, SDL_SCANCODE_V  // z x c v
 };
 
-static const uint8_t font_set[] = {
+static const uint8_t FONT_SET[] = {
   0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
   0x20, 0x60, 0x20, 0x20, 0x70, // 1
   0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2

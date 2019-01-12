@@ -12,7 +12,7 @@ chip_init(void)
 {
   chip_t *chip = calloc(1, sizeof(chip_t));
 
-  memcpy(chip->memory, font_set, sizeof(font_set));
+  memcpy(chip->memory, FONT_SET, sizeof(FONT_SET));
   memset(chip->v, 0, sizeof(chip->v));
   memset(chip->stack, 0, sizeof(chip->stack));
   memset(chip->display, COLOR_OFF, sizeof(chip->display));

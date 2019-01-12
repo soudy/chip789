@@ -37,8 +37,8 @@ main(int argc, char *argv[])
       case SDL_KEYUP:
       case SDL_KEYDOWN:
         for (int i = 0; i < NUM_KEYS; i++) {
-          if (event.key.keysym.scancode == sdl_keys[i]) {
-            chip->keys[key_map[i]] = (event.type == SDL_KEYDOWN) ? 1 : 0;
+          if (event.key.keysym.scancode == SDL_KEYS[i]) {
+            chip->keys[KEY_MAP[i]] = (event.type == SDL_KEYDOWN) ? 1 : 0;
             break;
           }
         }
